@@ -434,10 +434,10 @@ public Action Command_Blackjack(int client, int args)
         PrintToChat(client, "%s Usage: sm_blackjack OR sm_blackjack <amount>", PREFIX);
         return Plugin_Handled;
     }
-
-    if (g_iBids[client] < MINIMUM_BID)
+    // Validate that the bid is within range(min_bid, max_bid)
+    if (g_iBids[client] < MINIMUM_BID || g_iBids[client] > MAXIMUM_BID)
     {
-        PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d", PREFIX, MINIMUM_BID);
+        PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d or less than or equal to maximum bid of", PREFIX, MINIMUM_BID, MAXIMUM_BID);
         return Plugin_Handled;
     }
 
