@@ -22,6 +22,8 @@
 #include <sourcemod>
 #include <store>
 
+static const char g_cSuit[] = {'H', 'D', 'S', 'C'};
+static const char g_sRank[][] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
 int g_iDecks[MAXPLAYERS + 1][NUMBEROFCARDS];
 int g_iCurrentHand[MAXPLAYERS + 1] = {HAND_ONE, ...};
 int g_iBids[MAXPLAYERS + 1];
@@ -137,16 +139,14 @@ int GetNumberOfCards(int hand, int[] cards)
 // Returns the first card (used for the Dealer)
 void GetFirstCard(int hand, int[] cards, char[] buf, int size)
 {
-    static const char suit[] = {'H', 'D', 'S', 'C'};
-    static const char rank[][] = {'A', '2', '3', '4', '5', '6', '7', '8', '9', "10", 'J', 'Q', 'K'};
 
     for (int i = 0; i < NUMBEROFCARDS; i++)
     {
         if (cards[i] == hand)
         {
             Format(buf, size, "%c%s",
-                rank[i % 13],
-                suit[i / 13]
+                g_sRank[i % 13],
+                g_cSuit[i / 13]
             );
             return;
         }
@@ -159,8 +159,7 @@ void GetFirstCard(int hand, int[] cards, char[] buf, int size)
 //      AH, 2D, 3S
 void GetCards(int hand, int[] cards, char[] buf, int size)
 {
-    static const char suit[] = {'H', 'D', 'S', 'C'};
-    static const char rank[][] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+
 
     int currentCard = 0;
     int numberOfCards = GetNumberOfCards(hand, cards);
@@ -176,15 +175,15 @@ void GetCards(int hand, int[] cards, char[] buf, int size)
             if(currentCard == numberOfCards)
             {
                 Format(tmpbuf, sizeof(tmpbuf), "%s%c",
-                    rank[i % 13],
-                    suit[i / 13]
+                    g_sRank[i % 13],
+                    g_cSuit[i / 13]
                 );
             }
             else
             {
                 Format(tmpbuf, sizeof(tmpbuf), "%s%c, ",
-                    rank[i % 13],
-                    suit[i / 13]
+                    g_sRank[i % 13],
+                    g_cSuit[i / 13]
                 );
             }
             StrCat(buf, size, tmpbuf);
