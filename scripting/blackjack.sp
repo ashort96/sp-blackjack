@@ -384,15 +384,28 @@ void Finalize(int client)
         // If the player split, look at each hand
         if (g_bPlayerSplit[client])
         {
+            // If HandOne won
             if ((scoreHandOne > scoreDealer) && (scoreHandOne <= 21))
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
             }
+            // If HandOne tied
+            else if ((scoreHandOne == scoreDealer) && (scoreHandOne <= 21))
+            {
+                GiveClientCredits(client, g_iBids[client]);
+            }
+
+            // If HandTwo won
             if ((scoreHandTwo > scoreDealer) && (scoreHandTwo <= 21))
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
+            }
+            // If HandTwo tied
+            if ((scoreHandTwo == scoreDealer) && (scoreHandTwo <= 21))
+            {
+                GiveClientCredits(client, g_iBids[client]);
             }
 
             PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
@@ -401,10 +414,16 @@ void Finalize(int client)
         // Player only had one hand
         else 
         {
+            // If HandOne won
             if ((scoreHandOne > scoreDealer) && (scoreHandOne <= 21))
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
+            }
+            // If HandOne tied
+            else if ((scoreHandOne == scoreDealer) && (scoreHandOne <= 21))
+            {
+                GiveClientCredits(client, g_iBids[client]);
             }
             PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
         }
