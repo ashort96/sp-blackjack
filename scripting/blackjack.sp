@@ -296,12 +296,15 @@ void SplitHand(int client)
         if (g_iDecks[client][i] == HAND_ONE)
         {
             g_iDecks[client][i] = HAND_TWO;
+            // The player has split
+            g_bPlayerSplit[client] = true;
+            // They need to put in another bid
+            GiveClientCredits(client, -g_iBids[client]);
             return;
         }
     }
 
-    g_bPlayerSplit[client] = true;
-    GiveClientCredits(client, -g_iBids[client]);
+
 
 }
 
