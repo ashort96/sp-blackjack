@@ -496,6 +496,13 @@ public Action Command_Blackjack(int client, int args)
             return Plugin_Handled;
         }
     }
+    // Dealer got Blackjack and won
+    if (ScoreHand(DEALER, g_iDecks[client]) == 21)
+    {
+        PrintToChat(client, "%s The dealer got Blackjack! GAME OVER!", PREFIX);
+        return Plugin_Handled;
+    }
+
     DisplayBlackjackMenu(client);
 
     return Plugin_Handled;
