@@ -160,7 +160,7 @@ void GetFirstCard(int hand, int[] cards, char[] buf, int size)
 void GetCards(int hand, int[] cards, char[] buf, int size)
 {
     static const char suit[] = {'H', 'D', 'S', 'C'};
-    static const char rank[][] = {'A', '2', '3', '4', '5', '6', '7', '8', '9', "10", 'J', 'Q', 'K'};
+    static const char rank[][] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
 
     int currentCard = 0;
     int numberOfCards = GetNumberOfCards(hand, cards);
@@ -175,14 +175,14 @@ void GetCards(int hand, int[] cards, char[] buf, int size)
             // ',' after
             if(currentCard == numberOfCards)
             {
-                Format(tmpbuf, sizeof(tmpbuf), "%c%s",
+                Format(tmpbuf, sizeof(tmpbuf), "%s%c",
                     rank[i % 13],
                     suit[i / 13]
                 );
             }
             else
             {
-                Format(tmpbuf, sizeof(tmpbuf), "%c%s, ",
+                Format(tmpbuf, sizeof(tmpbuf), "%s%c, ",
                     rank[i % 13],
                     suit[i / 13]
                 );
