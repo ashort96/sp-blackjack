@@ -21,7 +21,7 @@
 #include <sourcemod>
 #include <store>
 
-static const char g_cSuit[] = {'H', 'D', 'S', 'C'};
+static const char g_cSuit[][] = {"♥", "◆", "♠", "♣"};
 static const char g_sRank[][] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
 int g_iDecks[MAXPLAYERS + 1][NUMBEROFCARDS];
 int g_iCurrentHand[MAXPLAYERS + 1] = {HAND_ONE, ...};
@@ -94,7 +94,7 @@ int ScoreHand(int hand, int[] cards)
         if (cards[i] == hand)
         {
             // Deal with cards 2-9
-            if ((i % 13 > 1) && (i % 13 < 10))
+            if ((i % 13 > 0) && (i % 13 <= 9))
             {
                 score += (i % 13) + 1;
             }
@@ -109,7 +109,7 @@ int ScoreHand(int hand, int[] cards)
     // Now to loop through again and see if there are any Aces.
     for (int i = 0; i < NUMBEROFCARDS; i++)
     {
-        if ((cards[i] == hand) && (i % 13 == 1))
+        if ((cards[i] == hand) && (i % 13 == 0))
         {
             if ((score + 11) > 21)
                 score += 1;
@@ -143,7 +143,7 @@ void GetFirstCard(int hand, int[] cards, char[] buf, int size)
     {
         if (cards[i] == hand)
         {
-            Format(buf, size, "%s%c",
+            Format(buf, size, "%s%s",
                 g_sRank[i % 13],
                 g_cSuit[i / 13]
             );
@@ -173,14 +173,14 @@ void GetCards(int hand, int[] cards, char[] buf, int size)
             // ',' after
             if(currentCard == numberOfCards)
             {
-                Format(tmpbuf, sizeof(tmpbuf), "%s%c",
+                Format(tmpbuf, sizeof(tmpbuf), "%s%s",
                     g_sRank[i % 13],
                     g_cSuit[i / 13]
                 );
             }
             else
             {
-                Format(tmpbuf, sizeof(tmpbuf), "%s%c, ",
+                Format(tmpbuf, sizeof(tmpbuf), "%s%s, ",
                     g_sRank[i % 13],
                     g_cSuit[i / 13]
                 );
@@ -302,8 +302,6 @@ void SplitHand(int client)
         }
     }
 
-
-
 }
 
 void DisplayBlackjackMenu(int client)
@@ -322,7 +320,7 @@ void DisplayBlackjackMenu(int client)
         blackjackMenu.AddItem("", "Split", ITEMDRAW_DISABLED);
     }
     blackjackMenu.ExitButton = false;
-    blackjackMenu.Display(client, 30);
+    blackjackMenu.Display(client, MENU_TIME_FOREVER);
 }
 
 void Finalize(int client)
@@ -332,6 +330,8 @@ void Finalize(int client)
     int scoreHandOne;
     int scoreHandTwo;
     int scoreDealer;
+
+    DisplayHandsToClient(client, g_iDecks[client], true);
 
     // Deal the rest of the cards to the Dealer
     while (ScoreHand(DEALER, g_iDecks[client]) < 17)
@@ -489,6 +489,7 @@ public Action Command_Blackjack(int client, int args)
         }
         else 
         {
+            DisplayHandsToClient(client, g_iDecks[client], true);
             PrintToChat(client, "%s BLACKJACK! You win!", PREFIX);
             GiveClientCredits(client, RoundFloat(g_iBids[client] * 2.5));
             return Plugin_Handled;
@@ -497,6 +498,7 @@ public Action Command_Blackjack(int client, int args)
     // Dealer got Blackjack and won
     if (ScoreHand(DEALER, g_iDecks[client]) == 21)
     {
+        DisplayHandsToClient(client, g_iDecks[client], true);
         PrintToChat(client, "%s The dealer got Blackjack! GAME OVER!", PREFIX);
         return Plugin_Handled;
     }
@@ -584,6 +586,7 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                 SplitHand(param1);
                 DealCard(HAND_ONE, g_iDecks[param1]);
                 DealCard(HAND_TWO, g_iDecks[param1]);
+                DisplayHandsToClient(param1, g_iDecks[param1]);
                 DisplayBlackjackMenu(param1);
             }
 
