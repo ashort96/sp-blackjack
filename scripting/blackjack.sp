@@ -562,7 +562,7 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                 }
                 else 
                 {
-
+                    DisplayHandsToClient(param1, g_iDecks[param1]);
                     DisplayBlackjackMenu(param1);
                 }
             }
