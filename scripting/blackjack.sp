@@ -6,7 +6,6 @@
 #define PLUGIN_VERSION      "1.0.0b"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
-
 #define NO_ONE      0
 #define DEALER      1
 #define HAND_ONE    2
@@ -144,7 +143,7 @@ void GetFirstCard(int hand, int[] cards, char[] buf, int size)
     {
         if (cards[i] == hand)
         {
-            Format(buf, size, "%c%s",
+            Format(buf, size, "%s%c",
                 g_sRank[i % 13],
                 g_cSuit[i / 13]
             );
@@ -447,7 +446,7 @@ public Action Command_Blackjack(int client, int args)
         GetCmdArg(1, buf, sizeof(buf));
         g_iBids[client] = StringToInt(buf);
     }
-    else if(args > 1)
+    else if (args > 1)
     {
         PrintToChat(client, "%s Usage: sm_blackjack OR sm_blackjack <amount>", PREFIX);
         return Plugin_Handled;
