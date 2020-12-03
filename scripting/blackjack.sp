@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.0.0b"
+#define PLUGIN_VERSION      "1.0.0"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -16,7 +16,7 @@
 
 #define NUMBEROFCARDS   52
 
-#define PREFIX      "[Blackjack]"
+#define PREFIX      "\x07B41F1F[Blackjack]\x07F8F8FF"
 
 #include <sourcemod>
 #include <store>
@@ -481,6 +481,7 @@ public Action Command_Blackjack(int client, int args)
     // If the player has Blackjack...
     if (ScoreHand(HAND_ONE, g_iDecks[client]) == 21)
     {
+        DisplayHandsToClient(client, g_iDecks[client], true);
         if (ScoreHand(DEALER, g_iDecks[client]) == 21)
         {
             PrintToChat(client, "%s You and the dealer both hit BlackJack!", PREFIX);
@@ -489,9 +490,7 @@ public Action Command_Blackjack(int client, int args)
         }
         else 
         {
-            DisplayHandsToClient(client, g_iDecks[client], true);
             PrintToChat(client, "%s BLACKJACK! You win!", PREFIX);
-            GiveClientCredits(client, RoundFloat(g_iBids[client] * 2.5));
             return Plugin_Handled;
         }
     }
@@ -542,6 +541,7 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                     // The user busted on their only hand
                     else if (!g_bPlayerSplit[param1])
                     {
+                        DisplayHandsToClient(param1, g_iDecks[param1]);
                         PrintToChat(param1, "%s You busted! DEALER WINS!", PREFIX);
                     }
                 }
@@ -573,6 +573,7 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                 if (g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_ONE)
                 {
                     g_iCurrentHand[param1] = HAND_TWO;
+                    DisplayHandsToClient(param1, g_iDecks[param1]);
                     DisplayBlackjackMenu(param1);
                 }
                 // Otherwise, finalize everything
