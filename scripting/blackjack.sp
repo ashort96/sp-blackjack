@@ -490,7 +490,8 @@ public Action Command_Blackjack(int client, int args)
         }
         else 
         {
-            PrintToChat(client, "%s BLACKJACK! You win!", PREFIX);
+            GiveClientCredits(client, RoundFloat(g_iBids[client] * 2.5));
+            PrintToChat(client, "%s BLACKJACK! You win %d credits!", PREFIX, RoundFloat(g_iBids[client] * 1.5));
             return Plugin_Handled;
         }
     }
