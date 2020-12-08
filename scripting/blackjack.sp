@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.0.0"
+#define PLUGIN_VERSION      "1.1.0"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
