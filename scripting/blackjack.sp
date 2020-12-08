@@ -561,6 +561,12 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                         PrintToChat(param1, "%s You got 21 on your second hand!", PREFIX);
                         Finalize(param1);
                     }
+                    // Else if the user has not split
+                    if (!g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_ONE)
+                    {
+                        PrintToChat(param1, "%s You got 21!", PREFIX);
+                        Finalize(param1);
+                    }
                 }
                 else 
                 {
