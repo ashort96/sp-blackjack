@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.1.0"
+#define PLUGIN_VERSION      "1.2.0"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -566,7 +566,6 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                     // Else if the user has not split
                     if (!g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_ONE)
                     {
-                        PrintToChat(param1, "%s You got 21!", PREFIX);
                         Finalize(param1);
                     }
                 }
