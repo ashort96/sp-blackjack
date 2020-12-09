@@ -351,14 +351,15 @@ void Finalize(int client)
     if (scoreDealer > 21)
     {
         PrintToChat(client, "%s The dealer has busted!", PREFIX);
+        // If the player has split
         if (g_bPlayerSplit[client])
         {
-            if (scoreHandOne < 21)
+            if (scoreHandOne <= 21)
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
             }
-            if (scoreHandTwo < 21)
+            if (scoreHandTwo <= 21)
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
@@ -366,9 +367,10 @@ void Finalize(int client)
             PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
 
         }
+        // If the player has not split
         else 
         {
-            if (ScoreHand(HAND_ONE, g_iDecks[client]) < 21)
+            if (ScoreHand(HAND_ONE, g_iDecks[client]) <= 21)
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
