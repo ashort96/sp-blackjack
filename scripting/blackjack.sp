@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.2.1"
+#define PLUGIN_VERSION      "1.2.2"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -27,6 +27,7 @@ int g_iDecks[MAXPLAYERS + 1][NUMBEROFCARDS];
 int g_iCurrentHand[MAXPLAYERS + 1] = {HAND_ONE, ...};
 int g_iBids[MAXPLAYERS + 1];
 bool g_bPlayerSplit[MAXPLAYERS + 1] = {false, ...};
+bool g_bInActiveGame[MAXPLAYERS + 1] = {false, ...};
 
 public Plugin:myinfo =
 {
@@ -330,7 +331,7 @@ void Finalize(int client)
     int scoreHandOne;
     int scoreHandTwo;
     int scoreDealer;
-
+    g_bInActiveGame[client] = false;
     DisplayHandsToClient(client, g_iDecks[client], true);
 
     // Deal the rest of the cards to the Dealer
@@ -437,6 +438,15 @@ void Finalize(int client)
 ///////////////////////////////////////////////////////////////////////////////
 public Action Command_Blackjack(int client, int args)
 {
+
+    // If the player was already in an active game
+    if (g_bInActiveGame[client])
+    {
+        DisplayBlackjackMenu(client);
+        return Plugin_Handled;
+    }
+
+
     g_iBids[client] = MINIMUM_BID;
     int clientCredits = Store_GetClientCredits(client);
 
@@ -468,6 +478,7 @@ public Action Command_Blackjack(int client, int args)
 
     PrintToChat(client, "%s You have bet %d credits. Dealing cards.", PREFIX, g_iBids[client]);
     GiveClientCredits(client, -g_iBids[client]);
+    g_bInActiveGame[client] = true;
 
     // Verify that the deck is "new"
     ClearDeck(g_iDecks[client]);
@@ -488,12 +499,14 @@ public Action Command_Blackjack(int client, int args)
         {
             PrintToChat(client, "%s You and the dealer both hit BlackJack!", PREFIX);
             GiveClientCredits(client, g_iBids[client]);
+            g_bInActiveGame[client] = false;
             return Plugin_Handled;
         }
         else 
         {
             GiveClientCredits(client, RoundFloat(g_iBids[client] * 2.5));
             PrintToChat(client, "%s BLACKJACK! You win %d credits!", PREFIX, RoundFloat(g_iBids[client] * 1.5));
+            g_bInActiveGame[client] = false;
             return Plugin_Handled;
         }
     }
@@ -502,6 +515,7 @@ public Action Command_Blackjack(int client, int args)
     {
         DisplayHandsToClient(client, g_iDecks[client], true);
         PrintToChat(client, "%s The dealer got Blackjack! GAME OVER!", PREFIX);
+        g_bInActiveGame[client] = false;
         return Plugin_Handled;
     }
 
@@ -544,8 +558,9 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                     // The user busted on their only hand
                     else if (!g_bPlayerSplit[param1])
                     {
-                        DisplayHandsToClient(param1, g_iDecks[param1]);
+                        DisplayHandsToClient(param1, g_iDecks[param1], true);
                         PrintToChat(param1, "%s You busted! DEALER WINS!", PREFIX);
+                        g_bInActiveGame[param1] = false;
                     }
                 }
                 else if (ScoreHand(g_iCurrentHand[param1], g_iDecks[param1]) == 21)
