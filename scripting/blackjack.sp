@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.2.1"
+#define PLUGIN_VERSION      "1.3.0"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -445,18 +445,22 @@ public Action Command_Blackjack(int client, int args)
     if (args == 1)
     {
         char buf[64];
+        int tmpbid;
         GetCmdArg(1, buf, sizeof(buf));
-        g_iBids[client] = StringToInt(buf);
+        tmpbid = StringToInt(buf);
+
+        // Validate that the bid is within range(min_bid, max_bid)
+        if (tmpbid < MINIMUM_BID || tmpbid > MAXIMUM_BID)
+        {
+            PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d or less than or equal to maximum bid of %d!", PREFIX, MINIMUM_BID, MAXIMUM_BID);
+            return Plugin_Handled;
+        }
+
+        g_iBids[client] = tmpbid;
     }
     else if (args > 1)
     {
         PrintToChat(client, "%s Usage: sm_blackjack OR sm_blackjack <amount>", PREFIX);
-        return Plugin_Handled;
-    }
-    // Validate that the bid is within range(min_bid, max_bid)
-    if (g_iBids[client] < MINIMUM_BID || g_iBids[client] > MAXIMUM_BID)
-    {
-        PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d or less than or equal to maximum bid of %d!", PREFIX, MINIMUM_BID, MAXIMUM_BID);
         return Plugin_Handled;
     }
 
