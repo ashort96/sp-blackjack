@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.3.0"
+#define PLUGIN_VERSION      "1.4.0b"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -42,6 +42,8 @@ public OnPluginStart()
 {
     RegConsoleCmd("sm_blackjack", Command_Blackjack);
     RegConsoleCmd("sm_bj", Command_Blackjack);
+
+    HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_PostNoCopy);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -442,12 +444,13 @@ public Action Command_Blackjack(int client, int args)
     // If the player was already in an active game
     if (g_bInActiveGame[client])
     {
+        PrintToChat(client, "%s Resuming previous game!", PREFIX);
         DisplayBlackjackMenu(client);
         return Plugin_Handled;
     }
 
 
-    g_iBids[client] = MINIMUM_BID;
+    int tmpbid = MINIMUM_BID;
     int clientCredits = Store_GetClientCredits(client);
 
     // If an argument is supplied, use that as the bid. Otherwise, assume
@@ -455,7 +458,6 @@ public Action Command_Blackjack(int client, int args)
     if (args == 1)
     {
         char buf[64];
-        int tmpbid;
         GetCmdArg(1, buf, sizeof(buf));
         tmpbid = StringToInt(buf);
 
@@ -466,7 +468,6 @@ public Action Command_Blackjack(int client, int args)
             return Plugin_Handled;
         }
 
-        g_iBids[client] = tmpbid;
     }
     else if (args > 1)
     {
@@ -474,12 +475,13 @@ public Action Command_Blackjack(int client, int args)
         return Plugin_Handled;
     }
 
-    if (clientCredits < g_iBids[client])
+    if (clientCredits < tmpbid)
     {
         PrintToChat(client, "%s You only have %d credits.", PREFIX, clientCredits);
         return Plugin_Handled;
     }
 
+    g_iBids[client] = tmpbid;
     PrintToChat(client, "%s You have bet %d credits. Dealing cards.", PREFIX, g_iBids[client]);
     GiveClientCredits(client, -g_iBids[client]);
     g_bInActiveGame[client] = true;
@@ -529,6 +531,10 @@ public Action Command_Blackjack(int client, int args)
 
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Menu Handler
+///////////////////////////////////////////////////////////////////////////////
 public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int param2)
 {
     switch (action)
@@ -628,4 +634,13 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
             delete blackjackMenu;
         }
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Event Handler
+///////////////////////////////////////////////////////////////////////////////
+public Action Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
+{
+    int client = GetClientOfUserId(GetEventInt(event, "userid"));
+    g_bInActiveGame[client] = false;
 }
