@@ -3,16 +3,13 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.4.0"
+#define PLUGIN_VERSION      "1.5.0"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
 #define DEALER      1
 #define HAND_ONE    2
 #define HAND_TWO    3
-
-#define MINIMUM_BID     50
-#define MAXIMUM_BID     MINIMUM_BID * 20
 
 #define NUMBEROFCARDS   52
 
@@ -23,9 +20,14 @@
 
 static const char g_cSuit[][] = {"♥", "◆", "♠", "♣"};
 static const char g_sRank[][] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+
+ConVar g_Cvar_Minimum_Bid;
+ConVar g_Cvar_Maximum_Bid;
+
 int g_iDecks[MAXPLAYERS + 1][NUMBEROFCARDS];
 int g_iCurrentHand[MAXPLAYERS + 1] = {HAND_ONE, ...};
 int g_iBids[MAXPLAYERS + 1];
+
 bool g_bPlayerSplit[MAXPLAYERS + 1] = {false, ...};
 bool g_bInActiveGame[MAXPLAYERS + 1] = {false, ...};
 
@@ -40,10 +42,18 @@ public Plugin:myinfo =
 
 public OnPluginStart()
 {
+
+    // ConVars
+    g_Cvar_Minimum_Bid = CreateConVar("sm_blackjack_minimum_bid", "50", "Minimum bid required to play", 0, true, 0.0);
+    g_Cvar_Maximum_Bid = CreateConVar("sm_blackjack_maximum_bid", "1000", "Maximum bid", 0, true, 0.0);
+
     RegConsoleCmd("sm_blackjack", Command_Blackjack);
     RegConsoleCmd("sm_bj", Command_Blackjack);
 
     HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_PostNoCopy);
+
+    AutoExecConfig(true, "blackjack");
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -450,7 +460,7 @@ public Action Command_Blackjack(int client, int args)
     }
 
 
-    int tmpbid = MINIMUM_BID;
+    int tmpbid = g_Cvar_Minimum_Bid.IntValue;
     int clientCredits = Store_GetClientCredits(client);
 
     // If an argument is supplied, use that as the bid. Otherwise, assume
@@ -462,9 +472,9 @@ public Action Command_Blackjack(int client, int args)
         tmpbid = StringToInt(buf);
 
         // Validate that the bid is within range(min_bid, max_bid)
-        if (tmpbid < MINIMUM_BID || tmpbid > MAXIMUM_BID)
+        if (tmpbid < g_Cvar_Minimum_Bid.IntValue || tmpbid > g_Cvar_Maximum_Bid.IntValue)
         {
-            PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d or less than or equal to maximum bid of %d!", PREFIX, MINIMUM_BID, MAXIMUM_BID);
+            PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d or less than or equal to maximum bid of %d!", PREFIX, g_Cvar_Minimum_Bid.IntValue, g_Cvar_Maximum_Bid.IntValue);
             return Plugin_Handled;
         }
 
