@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.5.0"
+#define PLUGIN_VERSION      "1.6.0"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -52,6 +52,7 @@ public OnPluginStart()
 
     HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_PostNoCopy);
 
+    LoadTranslations("blackjack.phrases");
     AutoExecConfig(true, "blackjack");
 
 }
@@ -215,13 +216,13 @@ void DisplayHandsToClient(int client, int[] cards, bool showDealer = false)
     {
         char dealerHand[128];
         GetCards(DEALER, cards, dealerHand, sizeof(dealerHand));
-        PrintToChat(client, "%s Dealer: %s (%d)", PREFIX, dealerHand, dealerScore);
+        PrintToChat(client, "%s %t", PREFIX, "DealerHand", dealerHand, dealerScore);
     }
     else 
     {
         char dealerCard[64];
         GetFirstCard(DEALER, cards, dealerCard, sizeof(dealerCard));
-        PrintToChat(client, "%s Dealer: Shows %s", PREFIX, dealerCard);
+        PrintToChat(client, "%s %t", PREFIX, "DealerCard", dealerCard);
     }
 
     char handOne[128];
@@ -231,13 +232,13 @@ void DisplayHandsToClient(int client, int[] cards, bool showDealer = false)
     {
         char handTwo[128];
         GetCards(HAND_TWO, cards, handTwo, sizeof(handTwo));
-        PrintToChat(client, "%s Player Hand (1): %s (%d)", PREFIX, handOne, handOneScore);
-        PrintToChat(client, "%s Player Hand (2): %s (%d)", PREFIX, handTwo, handTwoScore);
+        PrintToChat(client, "%s %t", PREFIX, "PlayerSplitHandOne", handOne, handOneScore);
+        PrintToChat(client, "%s %t", PREFIX, "PlayerSplitHandTwo", handTwo, handTwoScore);
 
     }
     else 
     {
-        PrintToChat(client, "%s Player Hand: %s (%d)", PREFIX, handOne, handOneScore);
+        PrintToChat(client, "%s %t", PREFIX, "PlayerSingleHand", handOne, handOneScore);
     }
 }
 
@@ -247,7 +248,7 @@ bool CanPlayerSplit(int client, int[] cards)
     int cardTwoValue = 0;
 
     // If the player has already split...
-    if (g_bPlayerSplit[client] == true)
+    if (g_bPlayerSplit[client])
         return false;
 
 
@@ -363,7 +364,7 @@ void Finalize(int client)
     // If the Dealer busts
     if (scoreDealer > 21)
     {
-        PrintToChat(client, "%s The dealer has busted!", PREFIX);
+        PrintToChat(client, "%s %t", PREFIX, "DealerBust");
         // If the player has split
         if (g_bPlayerSplit[client])
         {
@@ -377,7 +378,7 @@ void Finalize(int client)
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
             }
-            PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
+            PrintToChat(client, "%s %t", PREFIX, "PlayerWonCredits", totalWon, Store_GetClientCredits(client));
 
         }
         // If the player has not split
@@ -387,7 +388,7 @@ void Finalize(int client)
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
-                PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
+                PrintToChat(client, "%s %t", PREFIX, "PlayerWonCredits", totalWon, Store_GetClientCredits(client));
             }
         }
     }
@@ -397,31 +398,49 @@ void Finalize(int client)
         // If the player split, look at each hand
         if (g_bPlayerSplit[client])
         {
+            bool didEitherHandWin = false;
+            bool didEitherHandTie = false;
             // If HandOne won
             if ((scoreHandOne > scoreDealer) && (scoreHandOne <= 21))
             {
+                didEitherHandWin = true;
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
             }
             // If HandOne tied
             else if ((scoreHandOne == scoreDealer) && (scoreHandOne <= 21))
             {
+                didEitherHandTie = true;
+                PrintToChat(client, "%s %t", PREFIX, "SplitHandOnePush");
                 GiveClientCredits(client, g_iBids[client]);
             }
 
             // If HandTwo won
             if ((scoreHandTwo > scoreDealer) && (scoreHandTwo <= 21))
             {
+                didEitherHandWin = true;
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
             }
             // If HandTwo tied
-            if ((scoreHandTwo == scoreDealer) && (scoreHandTwo <= 21))
+            else if ((scoreHandTwo == scoreDealer) && (scoreHandTwo <= 21))
             {
+                didEitherHandTie = true;
+                PrintToChat(client, "%s %t", PREFIX, "SplitHandTwoPush");
                 GiveClientCredits(client, g_iBids[client]);
             }
 
-            PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
+            if (didEitherHandWin)
+            {
+                PrintToChat(client, "%s %t", PREFIX, "PlayerWonCredits", totalWon, Store_GetClientCredits(client));
+            }
+
+            if (!didEitherHandWin && !didEitherHandTie)
+            {
+                PrintToChat(client, "%s %t", PREFIX, "SplitHandDealerWon");
+            }
+
+
 
         }
         // Player only had one hand
@@ -432,13 +451,18 @@ void Finalize(int client)
             {
                 GiveClientCredits(client, g_iBids[client] * 2);
                 totalWon += g_iBids[client];
+                PrintToChat(client, "%s %t", PREFIX, "PlayerWonCredits", totalWon, Store_GetClientCredits(client));
             }
             // If HandOne tied
             else if ((scoreHandOne == scoreDealer) && (scoreHandOne <= 21))
             {
+                PrintToChat(client, "%s %t", PREFIX, "SingleHandPush");
                 GiveClientCredits(client, g_iBids[client]);
             }
-            PrintToChat(client, "%s You won %d credits! You now have %d total.", PREFIX, totalWon, Store_GetClientCredits(client));
+            else
+            {
+                PrintToChat(client, "%s %t", PREFIX, "SingleHandDealerWon");
+            }
         }
 
     }
@@ -454,7 +478,7 @@ public Action Command_Blackjack(int client, int args)
     // If the player was already in an active game
     if (g_bInActiveGame[client])
     {
-        PrintToChat(client, "%s Resuming previous game!", PREFIX);
+        PrintToChat(client, "%s %t", PREFIX, "ResumePreviousGame");
         DisplayBlackjackMenu(client);
         return Plugin_Handled;
     }
@@ -474,7 +498,7 @@ public Action Command_Blackjack(int client, int args)
         // Validate that the bid is within range(min_bid, max_bid)
         if (tmpbid < g_Cvar_Minimum_Bid.IntValue || tmpbid > g_Cvar_Maximum_Bid.IntValue)
         {
-            PrintToChat(client, "%s Bid must be greater than or equal to minimum bid of %d or less than or equal to maximum bid of %d!", PREFIX, g_Cvar_Minimum_Bid.IntValue, g_Cvar_Maximum_Bid.IntValue);
+            PrintToChat(client, "%s %t", PREFIX, "BidRequirements", g_Cvar_Minimum_Bid.IntValue, g_Cvar_Maximum_Bid.IntValue);
             return Plugin_Handled;
         }
 
@@ -487,12 +511,12 @@ public Action Command_Blackjack(int client, int args)
 
     if (clientCredits < tmpbid)
     {
-        PrintToChat(client, "%s You only have %d credits.", PREFIX, clientCredits);
+        PrintToChat(client, "%s %t", PREFIX, "NotEnoughCredits", clientCredits);
         return Plugin_Handled;
     }
 
     g_iBids[client] = tmpbid;
-    PrintToChat(client, "%s You have bet %d credits. Dealing cards.", PREFIX, g_iBids[client]);
+    PrintToChat(client, "%s %t", PREFIX, "BeginGame", g_iBids[client]);
     GiveClientCredits(client, -g_iBids[client]);
     g_bInActiveGame[client] = true;
 
@@ -513,7 +537,7 @@ public Action Command_Blackjack(int client, int args)
         DisplayHandsToClient(client, g_iDecks[client], true);
         if (ScoreHand(DEALER, g_iDecks[client]) == 21)
         {
-            PrintToChat(client, "%s You and the dealer both hit BlackJack!", PREFIX);
+            PrintToChat(client, "%s %t", PREFIX, "DealerAndPlayerBlackjack");
             GiveClientCredits(client, g_iBids[client]);
             g_bInActiveGame[client] = false;
             return Plugin_Handled;
@@ -521,7 +545,7 @@ public Action Command_Blackjack(int client, int args)
         else 
         {
             GiveClientCredits(client, RoundFloat(g_iBids[client] * 2.5));
-            PrintToChat(client, "%s BLACKJACK! You win %d credits!", PREFIX, RoundFloat(g_iBids[client] * 1.5));
+            PrintToChat(client, "%s %t", PREFIX, "PlayerBlackjack", RoundFloat(g_iBids[client] * 1.5));
             g_bInActiveGame[client] = false;
             return Plugin_Handled;
         }
@@ -530,7 +554,7 @@ public Action Command_Blackjack(int client, int args)
     if (ScoreHand(DEALER, g_iDecks[client]) == 21)
     {
         DisplayHandsToClient(client, g_iDecks[client], true);
-        PrintToChat(client, "%s The dealer got Blackjack! GAME OVER!", PREFIX);
+        PrintToChat(client, "%s %t", PREFIX, "DealerBlackjack");
         g_bInActiveGame[client] = false;
         return Plugin_Handled;
     }
@@ -564,14 +588,14 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                     if (g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_ONE)
                     {
                         g_iCurrentHand[param1] = HAND_TWO;
-                        PrintToChat(param1, "%s You have busted on your first hand!", PREFIX);
+                        PrintToChat(param1, "%s %t", PREFIX, "SplitHandOneBust");
                         DisplayHandsToClient(param1, g_iDecks[param1]);
                         DisplayBlackjackMenu(param1);
                     }
                     // If the user is on their second hand
                     else if(g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_TWO)
                     {
-                        PrintToChat(param1, "%s You have busted on your second hand!", PREFIX);
+                        PrintToChat(param1, "%s %t", PREFIX, "SplitHandTwoBust");
                         Finalize(param1);
                         // TODO: Finalize everything
                     }
@@ -579,7 +603,7 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                     else if (!g_bPlayerSplit[param1])
                     {
                         DisplayHandsToClient(param1, g_iDecks[param1], true);
-                        PrintToChat(param1, "%s You busted! DEALER WINS!", PREFIX);
+                        PrintToChat(param1, "%s %t", PREFIX, "SingleHandBust");
                         g_bInActiveGame[param1] = false;
                     }
                 }
@@ -589,13 +613,13 @@ public int Menu_Blackjack(Menu blackjackMenu, MenuAction action, int param1, int
                     if (g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_ONE)
                     {
                         g_iCurrentHand[param1] = HAND_TWO;
-                        PrintToChat(param1, "%s You got 21 on your first hand!", PREFIX);
+                        PrintToChat(param1, "%s %t", PREFIX, "SplitHandOne21");
                         DisplayHandsToClient(param1, g_iDecks[param1]);
                         DisplayBlackjackMenu(param1);
                     }
                     if (g_bPlayerSplit[param1] && g_iCurrentHand[param1] == HAND_TWO)
                     {
-                        PrintToChat(param1, "%s You got 21 on your second hand!", PREFIX);
+                        PrintToChat(param1, "%s %t", PREFIX, "SplitHandTwo21");
                         Finalize(param1);
                     }
                     // Else if the user has not split
