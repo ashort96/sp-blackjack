@@ -3,7 +3,7 @@
 #define PLUGIN_NAME         "CS:S Blackjack"
 #define PLUGIN_AUTHOR       "Dunder"
 #define PLUGIN_DESCRIPTION  "Play Blackjack using Zeph's Store" 
-#define PLUGIN_VERSION      "1.6.0"
+#define PLUGIN_VERSION      "1.6.1"
 #define PLUGIN_URL          "https://github.com/ashort96/sp-blackjack"
 
 #define NO_ONE      0
@@ -18,6 +18,8 @@
 #include <sourcemod>
 #include <store>
 
+#pragma newdecls required
+
 static const char g_cSuit[][] = {"♥", "◆", "♠", "♣"};
 static const char g_sRank[][] = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
 
@@ -31,7 +33,7 @@ int g_iBids[MAXPLAYERS + 1];
 bool g_bPlayerSplit[MAXPLAYERS + 1] = {false, ...};
 bool g_bInActiveGame[MAXPLAYERS + 1] = {false, ...};
 
-public Plugin:myinfo =
+public Plugin myinfo =
 {
     name = PLUGIN_NAME,
     author = PLUGIN_AUTHOR,
@@ -40,7 +42,7 @@ public Plugin:myinfo =
     url = PLUGIN_URL
 }
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 
     // ConVars
